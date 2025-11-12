@@ -31,7 +31,7 @@ jobs:
 # ▼▼▼ ก๊อป "ก้อน" นี้... ▼▼▼
   # ขั้นที่ 3: "สแกนกล่องมึงสิ... ว่าเน่าแค่ไหน"
       - name: Scan Docker image for vulnerabilities
-        uses: aquasecurity/trivy-action@v0.20.0
+        uses: aquasecurity/trivy-action@v0.67.2
         with:
           # บอกมันว่า "สแกนกล่องที่มึงเพิ่งสร้างตะกี้" (my-app:latest)
           image-ref: 'my-app:latest'
