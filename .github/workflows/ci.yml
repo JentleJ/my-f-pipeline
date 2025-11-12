@@ -27,3 +27,23 @@ jobs:
           context: .
           push: false # (ยังไม่ต้อง push... แค่ 'build' เฉยๆ)
           tags: my-app:latest
+
+# ▼▼▼ ก๊อป "ก้อน" นี้... ▼▼▼
+  # ขั้นที่ 3: "สแกนกล่องมึงสิ... ว่าเน่าแค่ไหน"
+      - name: Scan Docker image for vulnerabilities
+        uses: aquasecurity/trivy-action@v0.20.0
+        with:
+          # บอกมันว่า "สแกนกล่องที่มึงเพิ่งสร้างตะกี้" (my-app:latest)
+          image-ref: 'my-app:latest'
+          # ให้มันโชว์ผลเป็น "ตาราง" สวยๆ
+          format: 'table'
+          # อันนี้ "โคตรสำคัญ" ▼
+          # กูสั่งให้มัน "ห้ามพัง" (exit-code 0)
+          # กูแค่อยาก "ดูรีพอร์ต" ก่อน... ว่าเน่าแค่ไหน
+          exit-code: '0'
+          # ไม่ต้องสนรูที่ "ยังไม่มีคนแก้"
+          ignore-unfixed: true
+          # บอกมันว่า "สแกนหา 'รู' ที่ OS และ Library"ก
+          vuln-type: 'os,library'
+          # ขอดูแค่ "รู" ที่แม่ง "ฉิบหาย (Critical)" กับ "เหี้ย (High)"
+          severity: 'CRITICAL,HIGH'
