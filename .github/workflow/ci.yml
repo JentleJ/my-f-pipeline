@@ -1,0 +1,29 @@
+# 1. ตั้งชื่อ "ใบสั่งงาน" นี้
+name: CI - Build Docker Image
+
+# 2. สั่งว่า: "มึงต้องตื่น... เมื่อมีคน push มาที่กิ่ง 'master'"
+on:
+  push:
+    branches: [ "master" ]
+
+# 3. "งาน" ที่มึงต้องทำ...
+jobs:
+  # ตั้งชื่องานว่า 'build'
+  build:
+    # 4. "ไปยืมเครื่อง Linux มาทำงาน"
+    runs-on: ubuntu-latest
+
+    # 5. "ขั้นตอน" ที่ต้องทำ... (ทำทีละขั้น)
+    steps:
+      # ขั้นที่ 1: "ไปเอาโค้ด (บ้าน) ของกูมา"
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # ขั้นที่ 2: "สร้างตู้ (Docker) ตามแบบแปลน"
+      # (อันนี้มันจะไปเรียก 'docker build' ให้มึงอัตโนมัติ)
+      - name: Build the Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: false # (ยังไม่ต้อง push... แค่ 'build' เฉยๆ)
+          tags: my-app:latest
