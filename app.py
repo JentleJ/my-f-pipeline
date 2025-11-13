@@ -1,19 +1,35 @@
 from flask import Flask, request, jsonify
-# 1. เรียกเกราะมาใช้
-from flask_talisman import Talisman
+from flask_talisman import Talisman # เรียกเกราะมา
 
 app = Flask(__name__)
 
-# 2. สวมเกราะให้แอปฯ!
-# (content_security_policy=None คือยอมให้รันสคริปต์ง่ายๆ ไปก่อน เดี๋ยว ZAP ด่าเยอะ)
-Talisman(app, content_security_policy=None , force_https=False)
+# 1. สร้างกฎเหล็ก (CSP): "กูอนุญาตให้โหลดของจากบ้านกู ('self') เท่านั้น! ของคนอื่นห้ามเข้า!"
+csp = {
+    'default-src': '\'self\'',
+    'script-src': '\'self\'',
+    'style-src': '\'self\'',
+}
 
+# 2. สวมเกราะใหม่:
+# - content_security_policy=csp : บังคับใช้กฎเหล็กข้างบน
+# - force_https=False : ยังยอมให้ใช้ HTTP ธรรมดา (เพราะเราเทสใน Docker)
+Talisman(app, content_security_policy=csp, force_https=False)
+
+# 3. แก้เผ็ดโจร: ถ้าโจรแอบดู Header ว่าเราใช้ Server อะไร...
+@app.after_request
+def add_header(response):
+    # เปลี่ยนแม่งเลย ไม่ให้มันรู้ความจริง
+    response.headers['Server'] = 'GuRock-Server-V1' 
+    return response
+
+# --- ข้างล่างเหมือนเดิม ---
 users_db = []
 
-# 3. สร้าง "หน้าแรก" (Root) ให้ ZAP มันไม่งง (แก้ 404)
 @app.route('/')
 def home():
-    return "<h1>กูมีเกราะแล้วโว้ย!</h1>"
+    return "<h1>กูมีเกราะ CSP แล้วโว้ย!</h1>"
+
+# ... (โค้ดส่วนอื่นเหมือนเดิม) ...
 
 @app.route('/api/v1/users', methods=['POST'])
 def add_user():
