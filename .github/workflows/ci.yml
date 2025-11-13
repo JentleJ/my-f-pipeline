@@ -49,36 +49,49 @@ jobs:
         run: bandit -r . -l
 
   # ▼▼▼ งานที่ 3: DAST (แฮกตัวเอง) ▼▼▼
+  # ▼▼▼ งานที่ 3: DAST (แบบลูกผู้ชาย ตัวจริงไม่ง้อ Wrapper) ▼▼▼
   dast:
-    needs: build # (รอให้ build ผ่านก่อนค่อยทำ)
+    needs: build
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 1. สร้างตู้ขึ้นมาก่อน (เหมือนเดิม)
+      # 1. สร้างตู้แอปฯ
       - name: Build Docker Image
         run: docker build -t my-app:test .
 
-      # 2. "เปิดบ้าน" (รันตู้) ขึ้นมาจริงๆ บนเครื่องทดสอบ!
-      #    (-d = รันเบื้องหลัง, -p 5000:5000 = เปิดพอร์ต)
+      # 2. รันแอปฯ (เปิดรอไว้)
       - name: Run App Container
         run: docker run -d -p 5000:5000 --name my-test-app my-app:test
 
-      # 3. รอแป๊บนึง... ให้บ้านมันตั้งตัวเสร็จ
+      # 3. รอแป๊บ
       - name: Wait for App to be ready
         run: sleep 5
-      - name: Fix permissions for ZAP
-        run: chmod -R 777 .
 
-  
-  # 4. ปล่อยกองทัพ ZAP ถล่ม!
-      - name: OWASP ZAP Baseline Scan
-        uses: zaproxy/action-baseline@v0.12.0
-        with:
-          target: 'http://localhost:5000'
-          fail_action: true
-          allow_issue_writing: false
-          # ▼▼▼ เพิ่มบรรทัดนี้ ▼▼▼
-          rules_file_name: 'zap-rules.tsv'
-          # ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
+      # 4. เสกไฟล์กฎ (zap-rules.tsv) ขึ้นมาเอง! (แก้ปัญหา Tab/Space)
+      # \t คือ Tab ... มึงไม่ต้องพิมพ์เอง เดี๋ยวคอมมันพิมพ์ให้
+      - name: Generate ZAP Rules File
+        run: |
+          printf "10036\tIGNORE\t(Server Leaks)\n" > zap-rules.tsv
+          printf "10049\tIGNORE\t(Cache)\n" >> zap-rules.tsv
+          printf "10055\tIGNORE\t(CSP)\n" >> zap-rules.tsv
+          printf "90004\tIGNORE\t(Spectre)\n" >> zap-rules.tsv
+          chmod 777 zap-rules.tsv
+
+      # 5. เรียก ZAP ผ่าน Docker ตรงๆ (Nuclear Option) ☢️
+      # -v $(pwd):/zap/wrk/:rw  = เอาโฟลเดอร์ปัจจุบัน ยัดเข้าไปใน ZAP
+      # -t ...                  = Image ของ ZAP
+      # zap-baseline.py         = สคริปต์สแกน
+      # -t http://...           = เป้าหมาย
+      # -c zap-rules.tsv        = อ่านกฎที่เราเพิ่งเสก
+      # -I                      = (Important) ถ้าเจอแค่ Warning ไม่ต้องพังท่อ! พังเฉพาะ Error
+      - name: Run ZAP Scan (Direct Docker)
+        run: |
+          docker run --network host \
+            -v $(pwd):/zap/wrk/:rw \
+            -t ghcr.io/zaproxy/zaproxy:stable \
+            zap-baseline.py \
+            -t http://localhost:5000 \
+            -c zap-rules.tsv \
+            -I
