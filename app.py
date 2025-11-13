@@ -1,35 +1,44 @@
 from flask import Flask, request, jsonify
-from flask_talisman import Talisman # เรียกเกราะมา
+from flask_talisman import Talisman
 
 app = Flask(__name__)
 
-# 1. สร้างกฎเหล็ก (CSP): "กูอนุญาตให้โหลดของจากบ้านกู ('self') เท่านั้น! ของคนอื่นห้ามเข้า!"
+# 1. อัปเกรดกฎเหล็ก CSP (เพิ่ม object-src: 'none' เพื่อปิดทางโจรฝังไฟล์แปลกๆ)
 csp = {
     'default-src': '\'self\'',
     'script-src': '\'self\'',
     'style-src': '\'self\'',
+    'object-src': '\'none\'',
+    'base-uri': '\'self\''
 }
 
-# 2. สวมเกราะใหม่:
-# - content_security_policy=csp : บังคับใช้กฎเหล็กข้างบน
-# - force_https=False : ยังยอมให้ใช้ HTTP ธรรมดา (เพราะเราเทสใน Docker)
+# 2. สวมเกราะ (เหมือนเดิม)
 Talisman(app, content_security_policy=csp, force_https=False)
 
-# 3. แก้เผ็ดโจร: ถ้าโจรแอบดู Header ว่าเราใช้ Server อะไร...
+# 3. ยันต์กันผีชุดใหญ่ (ทำงานทุกครั้งที่มีการตอบกลับ)
 @app.after_request
-def add_header(response):
-    # เปลี่ยนแม่งเลย ไม่ให้มันรู้ความจริง
-    response.headers['Server'] = 'GuRock-Server-V1' 
+def add_security_headers(response):
+    # --- แก้เรื่อง Server Leaks ---
+    # เปลี่ยนชื่อ Server แม่งเลย (ถ้ามันยังด่าอีก ก็ช่างหัวมัน เพราะนี่คือ Dev Server)
+    response.headers['Server'] = 'GuRock-Server-V1'
+    
+    # --- แก้เรื่อง Cache (ห้ามจำ!) ---
+    response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
+    
+    # --- แก้เรื่อง Spectre (แยกบ้านเราออกจากเว็บอื่น) ---
+    response.headers['Cross-Origin-Opener-Policy'] = 'same-origin'
+    response.headers['Cross-Origin-Embedder-Policy'] = 'require-corp'
+    
     return response
 
-# --- ข้างล่างเหมือนเดิม ---
+# --- (ส่วน Database และ Route เหมือนเดิม) ---
 users_db = []
 
 @app.route('/')
 def home():
-    return "<h1>กูมีเกราะ CSP แล้วโว้ย!</h1>"
-
-# ... (โค้ดส่วนอื่นเหมือนเดิม) ...
+    return "<h1>กูมีเกราะ Ultimate แล้วโว้ย!</h1>"
 
 @app.route('/api/v1/users', methods=['POST'])
 def add_user():
@@ -40,11 +49,11 @@ def add_user():
     username = data['username']
     users_db.append(username)
     
-    # nosec กูสั่งให้หุบปากเรื่อง Print
+    # nosec
     print(f"User added: {username}") 
     
     return jsonify({"status": "success", "user_added": username}), 201
 
 if __name__ == '__main__':
-    # nosec สั่งหมาหุบปากเรื่อง 0.0.0.0 (เพราะเราใช้ Talisman บังคับ HTTPS แล้ว แต่ใน Docker มันโอเค)
-    app.run(host='0.0.0.0', port=5000)# nosec                                                                               `                                                                  
+    # nosec
+    app.run(host='0.0.0.0', port=5000)
