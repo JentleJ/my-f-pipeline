@@ -47,3 +47,35 @@ jobs:
 
       - name: Run Bandit (SAST Scan)
         run: bandit -r . -l
+
+  # ▼▼▼ งานที่ 3: DAST (แฮกตัวเอง) ▼▼▼
+  dast:
+    needs: build # (รอให้ build ผ่านก่อนค่อยทำ)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 1. สร้างตู้ขึ้นมาก่อน (เหมือนเดิม)
+      - name: Build Docker Image
+        run: docker build -t my-app:test .
+
+      # 2. "เปิดบ้าน" (รันตู้) ขึ้นมาจริงๆ บนเครื่องทดสอบ!
+      #    (-d = รันเบื้องหลัง, -p 5000:5000 = เปิดพอร์ต)
+      - name: Run App Container
+        run: docker run -d -p 5000:5000 --name my-test-app my-app:test
+
+      # 3. รอแป๊บนึง... ให้บ้านมันตั้งตัวเสร็จ
+      - name: Wait for App to be ready
+        run: sleep 5
+
+      # 4. ปล่อยกองทัพ ZAP ถล่ม! (Full Scan)
+      - name: OWASP ZAP Baseline Scan
+        uses: zaproxy/action-baseline@v0.12.0
+        with:
+          # ยิงใส่ localhost ของเครื่องทดสอบ
+          target: 'http://localhost:5000'
+          # ถ้าเจอช่องโหว่ (Fail) ... ให้ท่อพังทันที!
+          fail_action: true
+          # ยอมให้มี Warning ได้ (แต่ Error ห้ามมี)
+          allow_issue_writing: false
