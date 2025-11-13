@@ -55,5 +55,5 @@ def add_user():
     return jsonify({"status": "success", "user_added": username}), 201
 
 if __name__ == '__main__':
-    # nosec
-    app.run(host='0.0.0.0', port=5000)
+    
+    app.run(host='0.0.0.0', port=5000)# nosec
