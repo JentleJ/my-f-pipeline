@@ -1,49 +1,49 @@
-# 1. ตั้งชื่อ "ใบสั่งงาน" นี้
-name: CI - Build Docker Image
+# เปลี่ยนชื่อแม่งหน่อย
+name: CI - Build, Trivy Scan, and SAST
 
-# 2. สั่งว่า: "มึงต้องตื่น... เมื่อมีคน push มาที่กิ่ง 'master'"
 on:
   push:
     branches: [ "master" ]
 
-# 3. "งาน" ที่มึงต้องทำ...
 jobs:
-  # ตั้งชื่องานว่า 'build'
+  # ▼▼▼ งานแรก (ที่มึงมีอยู่แล้ว) ▼▼▼
   build:
-    # 4. "ไปยืมเครื่อง Linux มาทำงาน"
     runs-on: ubuntu-latest
-
-    # 5. "ขั้นตอน" ที่ต้องทำ... (ทำทีละขั้น)
     steps:
-      # ขั้นที่ 1: "ไปเอาโค้ด (บ้าน) ของกูมา"
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # ขั้นที่ 2: "สร้างตู้ (Docker) ตามแบบแปลน"
-      # (อันนี้มันจะไปเรียก 'docker build' ให้มึงอัตโนมัติ)
       - name: Build the Docker image
         uses: docker/build-push-action@v5
         with:
           context: .
-          push: false # (ยังไม่ต้อง push... แค่ 'build' เฉยๆ)
+          push: false 
           tags: my-app:latest
 
-# ▼▼▼ ก๊อป "ก้อน" นี้... ▼▼▼
-  # ขั้นที่ 3: "สแกนกล่องมึงสิ... ว่าเน่าแค่ไหน"
-      - name: Scan Docker image for vulnerabilities
+      - name: Scan Docker image (Trivy)
         uses: aquasecurity/trivy-action@0.20.0
         with:
-          # บอกมันว่า "สแกนกล่องที่มึงเพิ่งสร้างตะกี้" (my-app:latest)
           image-ref: 'my-app:latest'
-          # ให้มันโชว์ผลเป็น "ตาราง" สวยๆ
           format: 'table'
-          # อันนี้ "โคตรสำคัญ" ▼
-          # กูสั่งให้มัน "ห้ามพัง" (exit-code 0)
-          # กูแค่อยาก "ดูรีพอร์ต" ก่อน... ว่าเน่าแค่ไหน
           exit-code: '1'
-          # ไม่ต้องสนรูที่ "ยังไม่มีคนแก้"
           ignore-unfixed: false
-          # บอกมันว่า "สแกนหา 'รู' ที่ OS และ Library"ก
           vuln-type: 'os,library'
-          # ขอดูแค่ "รู" ที่แม่ง "ฉิบหาย (Critical)" กับ "เหี้ย (High)"
           severity: 'CRITICAL,HIGH'
+
+  # ▼▼▼ งานที่สอง (ที่มึงเพิ่งเพิ่ม) ▼▼▼
+  sast:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install Bandit
+        run: pip install bandit
+
+      - name: Run Bandit (SAST Scan)
+        run: bandit -r . -ll
