@@ -68,6 +68,9 @@ jobs:
       # 3. รอแป๊บนึง... ให้บ้านมันตั้งตัวเสร็จ
       - name: Wait for App to be ready
         run: sleep 5
+      - name: Fix permissions for ZAP
+        run: chmod -R 777 .
+
   
   # 4. ปล่อยกองทัพ ZAP ถล่ม!
       - name: OWASP ZAP Baseline Scan
