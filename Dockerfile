@@ -1,15 +1,13 @@
-# 1. บอกว่า "ตู้" นี้ จะเริ่มจาก "ตู้เปล่าที่มี Python 3.10"
 FROM python:3.10-slim
 
-# 2. สร้าง "ห้อง" ชื่อ /app "ในตู้"
 WORKDIR /app
 
-# 3. ก๊อป "ทุกอย่าง" (app.py) จาก "ข้างนอก" (เครื่องมึง)
-#    เข้าไปใน "ห้อง" /app "ในตู้"
+# ก๊อปไฟล์รายการของมาก่อน
+COPY requirements.txt .
+# ลงของตามรายการ (Flask + Talisman)
+RUN pip install -r requirements.txt
+
+# ค่อยก๊อปโค้ดที่เหลือ
 COPY . .
 
-# 4. สั่งให้ "ในตู้" ลง Flask
-RUN pip install Flask
-
-# 5. บอกว่า ถ้า "ตู้" นี้ถูกเปิด... ให้รันคำสั่งนี้
 CMD ["python", "app.py"]
