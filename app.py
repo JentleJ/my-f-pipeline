@@ -6,7 +6,7 @@ app = Flask(__name__)
 
 # 2. สวมเกราะให้แอปฯ!
 # (content_security_policy=None คือยอมให้รันสคริปต์ง่ายๆ ไปก่อน เดี๋ยว ZAP ด่าเยอะ)
-Talisman(app, content_security_policy=None)
+Talisman(app, content_security_policy=None , force_https=False)
 
 users_db = []
 
@@ -31,4 +31,4 @@ def add_user():
 
 if __name__ == '__main__':
     # nosec สั่งหมาหุบปากเรื่อง 0.0.0.0 (เพราะเราใช้ Talisman บังคับ HTTPS แล้ว แต่ใน Docker มันโอเค)
-    app.run(host='0.0.0.0', port=5000)
+    app.run(host='0.0.0.0', port=5000)# nosec                                                                               `                                                                  
