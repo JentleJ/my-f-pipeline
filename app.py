@@ -1,4 +1,3 @@
-SUPER_SECRET_DB_PASSWORD = "admin123_This_Is_So_Fucking_Stupid"
 
 from flask import Flask, request, jsonify
 
