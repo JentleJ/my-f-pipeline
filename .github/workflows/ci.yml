@@ -68,17 +68,6 @@ jobs:
       # 3. รอแป๊บนึง... ให้บ้านมันตั้งตัวเสร็จ
       - name: Wait for App to be ready
         run: sleep 5
-
-      # 4. ปล่อยกองทัพ ZAP ถล่ม! (Full Scan)
-      - name: OWASP ZAP Baseline Scan
-        uses: zaproxy/action-baseline@v0.12.0
-        with:
-          # ยิงใส่ localhost ของเครื่องทดสอบ
-          target: 'http://localhost:5000'
-          # ถ้าเจอช่องโหว่ (Fail) ... ให้ท่อพังทันที!
-          fail_action: true
-          # ยอมให้มี Warning ได้ (แต่ Error ห้ามมี)
-          allow_issue_writing: false
   
   # 4. ปล่อยกองทัพ ZAP ถล่ม!
       - name: OWASP ZAP Baseline Scan
