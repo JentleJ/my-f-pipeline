@@ -79,3 +79,14 @@ jobs:
           fail_action: true
           # ยอมให้มี Warning ได้ (แต่ Error ห้ามมี)
           allow_issue_writing: false
+  
+  # 4. ปล่อยกองทัพ ZAP ถล่ม!
+      - name: OWASP ZAP Baseline Scan
+        uses: zaproxy/action-baseline@v0.12.0
+        with:
+          target: 'http://localhost:5000'
+          fail_action: true
+          allow_issue_writing: false
+          # ▼▼▼ เพิ่มบรรทัดนี้ ▼▼▼
+          rules_file_name: 'zap-rules.tsv'
+          # ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲

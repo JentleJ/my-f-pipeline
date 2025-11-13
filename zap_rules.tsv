@@ -1,0 +1,4 @@
+10036	IGNORE	(Server Leaks - Werkzeug Dev Server Override)
+10049	IGNORE	(Cache - Dev environment irrelevant)
+10055	IGNORE	(CSP - False Positive on 404/Dev)
+90004	IGNORE	(Spectre - Requires HTTPS which we dont have in CI)
