@@ -1,5 +1,5 @@
 # 1. บอกว่า "ตู้" นี้ จะเริ่มจาก "ตู้เปล่าที่มี Python 3.10"
-FROM python:3.10-slim
+FROM python:3.7-slim
 
 # 2. สร้าง "ห้อง" ชื่อ /app "ในตู้"
 WORKDIR /app
