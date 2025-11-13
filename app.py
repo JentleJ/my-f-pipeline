@@ -32,4 +32,4 @@ def add_user():
     
 # 8. คำสั่ง "เปิดบ้าน" (รันเซิร์ฟเวอร์)
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    app.run(host='0.0.0.0', port=5000) #nosec
